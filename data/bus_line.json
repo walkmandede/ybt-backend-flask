@@ -1,0 +1,10 @@
+{
+    "id" : "",
+    "busLineName" : "",
+    "busStops" : [
+        "1",
+        "2"
+    ],
+    "firstOne" : "05:00",
+    "lastOne" : "22:00"
+}
