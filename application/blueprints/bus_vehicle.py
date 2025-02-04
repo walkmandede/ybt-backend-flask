@@ -102,18 +102,18 @@ def update_bus_vehicle(busVehicleId):
         # Get the token from the header
         token = request.headers.get("apiToken")
         if not token:
-            return create_response(status_code=400,message="Token is invalid")
+            return create_response(status_code=400, message="Token is invalid")
 
         # Validate the token for bus line or bus driver
         user_type, associated_id = validate_token_for_bus_line_or_driver(token)
 
         if isinstance(associated_id, str):  # If validation returned an error message
-            return create_response(status_code=401,message="Token is invalid")
+            return create_response(status_code=401, message="Token is invalid")
 
         # Parse the request payload
         data = request.get_json()
         if not data or not any(key in data for key in ["regNo", "driverId", "serviceStatus", "location"]):
-            return create_response(status_code=400,message="At least one valid key is required in the request body.")
+            return create_response(status_code=400, message="At least one valid key is required in the request body.")
 
         # Get the MongoDB collections
         col_bus_vehicles = MongoCollections.get_collection_instance(MongoCollections.BUS_VEHICLES)
@@ -122,47 +122,51 @@ def update_bus_vehicle(busVehicleId):
         # Validate location
         location = data.get("location")
         if location == "":
-            return create_response(status_code=400,message="Invalid location format")
+            return create_response(status_code=400, message="Invalid location format")
         if location:
             location_validation_result = BusVehicleValidator.validate_location(location)
             if location_validation_result:
-                return create_response(status_code=location_validation_result[1],message=location_validation_result[0])
+                return create_response(status_code=location_validation_result[1], message=location_validation_result[0])
 
         # Validate regNo
         reg_no = data.get("regNo")
         if reg_no:
             reg_no_validation_result = BusVehicleValidator.validate_reg_no(reg_no, col_bus_vehicles)
             if reg_no_validation_result:
-                return create_response(status_code=reg_no_validation_result[1],message=reg_no_validation_result[0])
+                return create_response(status_code=reg_no_validation_result[1], message=reg_no_validation_result[0])
 
         # Validate serviceStatus
         service_status = data.get("serviceStatus")
         if service_status:
             service_status_validation_result = BusVehicleValidator.validate_service_status(service_status)
             if service_status_validation_result:
-                return create_response(status_code=service_status_validation_result[1],message=service_status_validation_result[0])
+                return create_response(status_code=service_status_validation_result[1], message=service_status_validation_result[0])
 
         # Validate driverId
         driver_id = data.get("driverId")
         if driver_id == "":
-            return create_response(status_code=400,message="Invalid driver id")
+            return create_response(status_code=400, message="Invalid driver id")
         if driver_id:
-            driver_id_validation_result = BusVehicleValidator.validate_driver_id(driver_id, col_bus_vehicles,col_bus_drivers)
+            driver_id_validation_result = BusVehicleValidator.validate_driver_id(driver_id, col_bus_vehicles, col_bus_drivers)
             if driver_id_validation_result is None:
-                return create_response(status_code=400,message="Invalid driver id")
+                return create_response(status_code=400, message="Invalid driver id")
             if driver_id_validation_result == False:
-                return create_response(status_code=driver_id_validation_result[1],message=driver_id_validation_result[0])
+                return create_response(status_code=driver_id_validation_result[1], message=driver_id_validation_result[0])
 
         # Find the bus vehicle by ID
         bus_vehicle = col_bus_vehicles.find_one({"_id": ObjectId(busVehicleId)})
         if not bus_vehicle:
-            return create_response(status_code=404,message="Bus vehicle not found")
+            return create_response(status_code=404, message="Bus vehicle not found")
 
         # Check if the user has permission to update (Bus Line or Driver)
         if user_type == "bus_line" and bus_vehicle["busLineId"] != str(associated_id):
-            return create_response(status_code=403,message="Permission denied for this bus line.")
+            return create_response(status_code=403, message="Permission denied for this bus line.")
         if user_type == "bus_driver" and bus_vehicle["driverId"] != str(associated_id):
-            return create_response(status_code=403,message="Permission denied for this bus line.")
+            return create_response(status_code=403, message="Permission denied for this bus line.")
+
+        # If driverId is being updated, remove it from other vehicles
+        if driver_id:
+            col_bus_vehicles.update_many({"driverId": driver_id}, {"$set": {"driverId": None}})
 
         # Update lastLocationUpdatedAt if location is updated
         if "location" in data:
@@ -170,10 +174,11 @@ def update_bus_vehicle(busVehicleId):
 
         # Update the bus vehicle
         col_bus_vehicles.update_one({"_id": ObjectId(busVehicleId)}, {"$set": data})
-        return create_response(status_code=200,message="Bus vehicle updated successfully",success=True)
+        return create_response(status_code=200, message="Bus vehicle updated successfully", success=True)
 
     except Exception as e:
-        return create_response(status_code=500,message=str(e))
+        return create_response(status_code=500, message=str(e))
+
     
 @bus_vehicle_bp.route("/bus-vehicle/<busVehicleId>", methods=["DELETE"])
 def delete_bus_vehicle(busVehicleId):
