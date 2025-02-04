@@ -1,0 +1,217 @@
+{
+    "name" : "api template",
+    "version" : "1",
+    "apis" : [
+        {
+            "name" : "Bus Line Register",
+            "method" : "POST",
+            "endPoint" : "/auth-bus-line/register",
+            "payload" : {
+                "name" : "String",
+                "busStopIds" : ["String - busStopId"],
+                "password" : ""
+            },
+            "description" : [
+                "name must be unique in the database",
+                "busStopIds can be empty array, but it has data, its data must be valid bus stop id"
+            ]
+        },
+        {
+            "name" : "Get all bus stops",
+            "method" : "GET",
+            "endPoint" : "/bus-stop",
+            "payload" : {
+            },
+            "description" : [
+              "Get all busstops from mongo db"
+            ]
+        },
+        {
+            "name" : "Bus Line Me",
+            "method" : "GET",
+            "endPoint" : "/auth-bus-line/me/{token}",
+            "payload" : {
+            },
+            "description" : [
+              "should return bus line detail with that token "
+            ]
+        },
+         {
+            "name" : "Update Bus Line Stops",
+            "method" : "PATCH",
+            "endPoint" : "/bus-line/update-stops",
+            "payload" : {
+                "busStopIds" : [
+                    "String - busStopId"
+                ]
+            },
+            "others" : {
+                "barerToken" : "String"
+            },
+            "description" : [
+              "token must be valid",
+              "bus stops ids must be valid",
+              "if all valid, update bus line of given token by new stops value"
+            ]
+        },
+        {
+            "name" : "Create a bus driver",
+            "method" : "POST",
+            "endPoint" : "/bus-driver",
+            "payload" : {
+                "name" : "String",
+                "phone" : "String",
+                "password" : "String",
+                "busLineId" : "String"
+            },
+            "others" : {
+                "token" : "String"
+            },
+            "description" : [
+              "phone must not be the same with other drivers' in the system",
+              "bus line id must be valid in bus line collection"
+            ]
+        },
+        {
+            "name" : "Get all drivers",
+            "method" : "GET",
+            "endPoint" : "/bus-driver",
+            "payload" : {
+            },
+            "params" : {
+                "token" : "String"
+            },
+            "others" : {
+
+            },
+            "description" : [
+                "token must be valid",
+                "should return all bus drivers from the database"
+            ]
+        },
+        {
+            "name" : "Create a bus vehicle",
+            "method" : "POST",
+            "endPoint" : "/bus-vehicle",
+            "payload" : {
+                "regNo" : "String",
+                "driverId" : "String"
+            },
+            "others" : {
+
+            },
+            "header" : {
+                "apiToken" : "String"
+            },
+            "description" : [
+              "regNo must be unique in whole collection",
+              "driver id must be the one whose busLineId is the same with bus line id of the given token",
+              "when success, before adding to the collection, add those extra fields in the document : serviceStatus=off, location=null, lastLocationUpdatedAt=DateTime.now(),busLineId=busLineId of given token"
+            ]
+        },
+        {
+            "name" : "Update Bus Vehicle",
+            "method" : "PATCH",
+            "endPoint" : "/bus-vehicle",
+            "payload" : {
+                "regNo" : "String",
+                "driverId" : "String",
+                "serviceStatus" : "Enum (on|off)",
+                "location" : "Location String (16.2525,96.2525)"
+            },
+            "header" : {
+                "apiToken" : ""
+            },
+            "params" : {
+                "busVehicleId" : ""
+            },
+            "others" : {
+
+            },
+            "description" : [
+              "keys in payload must have at least one key in request body",
+              "api token should be valid for (bus-line or bus-driver) collection. (This api can be called with all tokens of bus line or bus driver)",
+              "need to update lastLocationUpdatedAt field if there are some changes for location field",
+              "if there is no driverId key in request body, it will not update. but if there is a key with null value, it will set the field to null",
+              "location must be in that format"
+            ]
+        },
+        {
+            "name" : "Delete a bus driver",
+            "method" : "DELETE",
+            "endPoint" : "/bus-driver",
+            "payload" : {
+            },
+            "header" : {
+
+            },
+            "params" : {
+                "busDriverId" : ""
+            },
+            "others" : {
+
+            },
+            "description" : [
+              "if there is no valid busDrvierID return error message",
+              "if valid, set all bus documents(with that busDriverID) from bus collections feilds as driver_id: null, service_status: OFF(Enum),"
+            ]
+        },
+        {
+            "name" : "Delete a bus vehicle",
+            "method" : "DELETE",
+            "endPoint" : "/bus-vehicle",
+            "payload" : {
+            },
+            "header" : {
+
+            },
+            "params" : {
+                "busDriverId" : ""
+            },
+            "others" : {
+
+            },
+            "description" : [
+              "if there is no valid bus vehicle id return error message"
+            ]
+        },
+        {
+            "name" : "Driver Login",
+            "method" : "POST",
+            "endPoint" : "/bus-driver/login",
+            "payload" : {
+                "phone" : "String",
+                "password" : "String"
+            },
+            "header" : {
+
+            },
+            "params" : {
+            },
+            "others" : {
+
+            },
+            "description" : [
+              "To check phone and password are valid (one of the busDrivers document must have those two)",
+              "If there is no busVehicle docuemnt in busVehicles collcetion with busDriverId with given phone and password, return error",
+              "If login success, reuturn bus driver detail in response's data"
+            ]
+        },
+        {
+            "name" : "Template",
+            "method" : "POST",
+            "endPoint" : "/",
+            "payload" : {
+            },
+            "header" : {
+
+            },
+            "others" : {
+
+            },
+            "description" : [
+              
+            ]
+        }
+    ]
+}

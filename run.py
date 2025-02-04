@@ -23,11 +23,18 @@ mongo = PyMongo(app)
 #init functions
 
 def register_bps():
-    from application.blueprints.admin_auth import admin_auth_bp
-    app.register_blueprint(admin_auth_bp, url_prefix="/api")
-
+    ## bus stops
     from application.blueprints.bus_stop import bus_stop_bp
     app.register_blueprint(bus_stop_bp, url_prefix="/api")
+    ## bus line
+    from application.blueprints.bus_line import bus_line_bp
+    app.register_blueprint(bus_line_bp, url_prefix="/api")
+    ## bus driver
+    from application.blueprints.bus_driver import bus_driver_bp
+    app.register_blueprint(bus_driver_bp, url_prefix="/api")
+    ## bus vehicle
+    from application.blueprints.bus_vehicle import bus_vehicle_bp
+    app.register_blueprint(bus_vehicle_bp, url_prefix="/api")
 
 def init_api_docs():
     api = Api(app)
