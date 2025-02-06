@@ -35,6 +35,9 @@ def register_bps():
     ## bus vehicle
     from application.blueprints.bus_vehicle import bus_vehicle_bp
     app.register_blueprint(bus_vehicle_bp, url_prefix="/api")
+    ## users
+    from application.blueprints.users.users import user_bp
+    app.register_blueprint(user_bp, url_prefix="/api")
 
 def init_api_docs():
     api = Api(app)
@@ -50,7 +53,8 @@ if __name__ == '__main__':
     print("Started")
     print("+++++++++++++")
 
-    app.run(debug=True,port=2345)
+    # app.run(debug=True,port=2345)
+    app.run(debug=True, host='0.0.0.0', port=2345)
     print("Started")
 
 

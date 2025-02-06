@@ -7,7 +7,7 @@ from application.schemas.bus_driver_schema import CreateBusDriverSchema
 from application.schemas.bus_stop_schema import BusStopSchema
 from application.schemas.bus_vehicle_schema import BusVehicleValidator
 from application.utils.app_util import AppUtils, super_print
-from application.utils.jwt_service import validate_bus_line_token, validate_token_for_bus_line_or_driver
+from application.utils.jwt_service import validate_bus_driver_token, validate_bus_line_token, validate_token_for_bus_line_or_driver
 from application.utils.mongo_collections import MongoCollections
 from application.utils.response_util import create_response
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -208,4 +208,32 @@ def delete_bus_vehicle(busVehicleId):
 
     except Exception as e:
         return create_response(message=str(e), status_code=500, success=False)
+    
+@bus_vehicle_bp.route("/bus-vehicle/<busVehicleId>", methods=["GET"])
+def fetchBusDetail(busVehicleId):
+    try:
+        token = request.headers.get("apiToken")
+        if not token:
+            return create_response(status_code=400, message="Token(apiToken) is required")
 
+    
+        # Validate token for both bus line and driver
+        bus_line_id = validate_bus_line_token(token)
+        driver_id = validate_bus_driver_token(token)
+
+        if isinstance(bus_line_id, str) and isinstance(driver_id, str):
+            return create_response(status_code=401, message="Invalid token")
+
+        col_bus_vehicles = MongoCollections.get_collection_instance(MongoCollections.BUS_VEHICLES)
+        bus_vehicle = col_bus_vehicles.find_one({"_id": ObjectId(busVehicleId)})
+
+        if not bus_vehicle:
+            return create_response(status_code=404, message="Bus vehicle not found")
+
+        bus_vehicle["_id"] = str(bus_vehicle["_id"])
+        if bus_vehicle["driverId"]:
+            bus_vehicle["driverId"] = str(bus_vehicle["driverId"])
+        
+        return create_response(status_code=200, message="Bus vehicle details fetched successfully", success=True, data=bus_vehicle)
+    except Exception as e:
+        return create_response(status_code=500, message=str(e))
