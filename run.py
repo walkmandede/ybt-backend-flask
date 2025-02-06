@@ -14,7 +14,8 @@ def home():
     return "Welcome to my app! Yangon Bus Tracking System"
 
 app.config.from_object('config.Config')
-app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+# app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+app.config["MONGO_URI"] = "mongodb+srv://walkmandede:kokolusoepotato@uosbuc.c0oppu4.mongodb.net/yangon_bus_tracking_system"
 
 ## init mongodb
 mongo = PyMongo(app)
