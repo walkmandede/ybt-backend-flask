@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 import os
 from flask_cors import CORS
 from flask_pymongo import PyMongo
@@ -11,7 +11,11 @@ CORS(app)
 # entry route
 @app.route('/')
 def home():
-    return "Welcome to my app! Yangon Bus Tracking System"
+    return render_template("index.html")
+# entry route
+@app.route('/api')
+def home_api():
+    return render_template("index.html")
 
 app.config.from_object('config.Config')
 # app.config["MONGO_URI"] = os.getenv("MONGO_URI")
@@ -55,8 +59,8 @@ if __name__ == '__main__':
     print("+++++++++++++")
 
     # app.run(debug=True,port=2345)
-    app.run(debug=True, host='0.0.0.0', port=2345)
-    print("Started")
+    app.run()
+    # app.run(debug=True, host='0.0.0.0', port=2345)
 
 
 
