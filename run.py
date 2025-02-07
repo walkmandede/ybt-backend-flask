@@ -49,9 +49,9 @@ def init_api_docs():
     api.namespace('Data', description='Data operations')
 
 
+register_bps()
 
 if __name__ == '__main__':
-    register_bps()
     # init_api_docs()
 
     print("+++++++++++++")
